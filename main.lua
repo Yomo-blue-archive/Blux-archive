@@ -1,20 +1,24 @@
--- Khai báo biến tốc độ (Bạn có thể thay đổi số 100 thành số khác)
-local speedValue = 100
 
--- Thông báo cho người dùng biết script đã chạy
-game:GetService("StarterGui"):SetCore("SendNotification", {
-    Title = "Ys9282 Speed Hack",
-    Text = "Tốc độ hiện tại: " .. speedValue,
-    Duration = 5
-})
+-- Tải thư viện UI (Kavo Library)
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Yomo-blue-archive/Blux-archive/refs/heads/main/main.lua"))()
+local Window = Library.CreateLib("Ys9282 Hub", "DarkScene")
 
--- Vòng lặp để giữ tốc độ luôn ổn định (tránh bị game reset)
-while true do
-    -- Kiểm tra nếu nhân vật tồn tại
-    if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
-        -- Chỉnh tốc độ chạy
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = speedValue
-    end
-    task.wait(1) -- Đợi 1 giây rồi lặp lại
-end
+-- Tạo một Tab tên là "Main"
+local Tab = Window:NewTab("Tính năng")
+local Section = Tab:NewSection("Chỉnh thông số nhân vật")
 
+-- Tạo thanh trượt (Slider) để chỉnh tốc độ
+Section:NewSlider("Tốc độ chạy", "Kéo để chỉnh tốc độ của bạn", 500, 16, function(s) -- 500 là tối đa, 16 là mặc định
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = s
+end)
+
+-- Tạo thanh trượt (Slider) để chỉnh độ nhảy
+Section:NewSlider("Độ nhảy cao", "Kéo để nhảy cao hơn", 500, 50, function(s)
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = s
+end)
+
+-- Tạo nút bấm để Reset về mặc định
+Section:NewButton("Reset thông số", "Đưa tốc độ và nhảy về bình thường", function()
+    game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+    game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
+end)
