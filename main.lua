@@ -1,7 +1,7 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-    Name = "Rocket",
+    Name = "Tính👽",
     LoadingTitle = "Ai hỏi?",
     LoadingSubtitle = "by Coconut (Blue Archive)",
 })
