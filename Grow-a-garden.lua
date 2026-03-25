@@ -1,12 +1,50 @@
-local v0=loadstring(game:HttpGet("https://sirius.menu/rayfield"))();local v1=v0:CreateWindow({Name="Grow a Garden |V18.4",LoadingTitle="by Coconut(Blue Archive)",ConfigurationSaving={Enabled=false}});_G.AutoFarm=false;_G.GardenAnchorCFrame=nil;_G.GardenRadius=120 + 0 ;_G.AutoFeed=false;_G.AutoBuySeed=false;_G.AutoBuyGear=false;_G.AutoBuyEgg=false;_G.ESPEnabled=false;_G.ESPCache={};_G.PetLookupTable={};_G.SelectedPets={};_G.SelectedSeeds={};_G.SelectedGears={};_G.SelectedEggs={};_G.SelectedTreat="Medium Treat";local v2=game.Players.LocalPlayer;local v3=game:GetService("ReplicatedStorage");local v4=v3:WaitForChild("GameEvents");local v5=v4:FindFirstChild("ActivePetService");local v6=v4:FindFirstChild("BuySeedStock");local v7=v4:FindFirstChild("BuyGearStock");local v8=v4:FindFirstChild("BuyEgg") or v4:FindFirstChild("OpenEgg") ;local v9=v4:FindFirstChild("Sell_Inventory");local v10=CFrame.new(36.588,3,0.426);local v11=v1:CreateTab("ThĂº CÆ°ng & Trá»©ng",4483363249 -(368 + 423) );v11:CreateSection("đŸ¥ AUTO BUY EGG");v11:CreateDropdown({Name="Chá»n loáº¡i Trá»©ng:",Options={"Basic Egg","Rare Egg","Epic Egg","Legendary Egg","Mythical Egg","Transcendent Egg"},MultipleOptions=true,Callback=function(v16) _G.SelectedEggs=v16;end});v11:CreateToggle({Name="Báº­t Auto Buy Eggs",CurrentValue=false,Callback=function(v17) _G.AutoBuyEgg=v17;task.spawn(function() while _G.AutoBuyEgg do local v35=442 -(416 + 26) ;local v36;while true do if (v35==(0 -0)) then v36=0 + 0 ;while true do if (v36==0) then for v62,v63 in pairs(_G.SelectedEggs) do if v8 then pcall(function() v8:FireServer(v63);end);end end task.wait(3.5 -1 );break;end end break;end end end end);end});v11:CreateSection("đŸ¾ AUTO FEED PET");v11:CreateDropdown({Name="Chá»n loáº¡i thá»©c Äƒn:",Options={"Medium Treat","Large Treat","Levelup Lollipop"},CurrentOption="Medium Treat",Callback=function(v18) _G.SelectedTreat=v18;end});local v12=v11:CreateDropdown({Name="Chá»n Pet muá»‘n cho Äƒn:",Options={"QuĂ©t Pet trÆ°á»›c"},MultipleOptions=true,Callback=function(v19) _G.SelectedPets=v19;end});v11:CreateButton({Name="đŸ” QUĂ‰T PET TRONG VÆ¯á»œN",Callback=function() local v20=1486 -(998 + 488) ;local v21;while true do if (v20==2) then for v38,v39 in pairs(game.Workspace:GetDescendants()) do if (v39:IsA("Model") and string.match(v39.Name,"%w%w%w%w%w%w%w%w%-")) then local v51=0;local v52;local v53;local v54;local v55;local v56;while true do if (v51==1) then table.insert(v21,v54);v55=Instance.new("BillboardGui",v39);v55.Adornee=v39:FindFirstChild("HumanoidRootPart") or v39.PrimaryPart ;v55.Size=UDim2.new(0,32 + 68 ,0,40);v51=2;end if (v51==(3 + 0)) then v56.BackgroundTransparency=773 -(201 + 571) ;v56.TextColor3=Color3.fromRGB(1393 -(116 + 1022) ,255,0 -0 );v56.Text="đŸ¾ ID: "   .. string.sub(v52, -5) ;table.insert(_G.ESPCache,v55);break;end if (v51==0) then local v69=0 + 0 ;while true do if (v69==(0 -0)) then v52=v39.Name;v53=v39:GetAttribute("Species") or "Pet" ;v69=3 -2 ;end if (v69==2) then v51=860 -(814 + 45) ;break;end if ((2 -1)==v69) then v54=v53   .. " [#"   .. string.sub(v52, -5)   .. "]" ;_G.PetLookupTable[v54]=v52;v69=1 + 1 ;end end end if (v51==(1 + 1)) then v55.AlwaysOnTop=true;v55.Enabled=_G.ESPEnabled;v56=Instance.new("TextLabel",v55);v56.Size=UDim2.new(886 -(261 + 624) ,0 -0 ,1081 -(1020 + 60) ,1423 -(630 + 793) );v51=9 -6 ;end end end end v12:Refresh(v21);break;end if (v20==(4 -3)) then for v40,v41 in pairs(_G.ESPCache) do if v41 then v41:Destroy();end end _G.ESPCache={};v20=1 + 1 ;end if (v20==(0 -0)) then v21={};_G.PetLookupTable={};v20=1748 -(760 + 987) ;end end end});v11:CreateToggle({Name="Báº­t Auto Feed",CurrentValue=false,Callback=function(v22) local v23=1913 -(1789 + 124) ;while true do if (v23==(766 -(745 + 21))) then _G.AutoFeed=v22;task.spawn(function() while _G.AutoFeed do local v46=0 + 0 ;local v47;while true do if (v46==(0 -0)) then v47=0 -0 ;while true do if (v47==(0 + 0)) then for v78,v79 in pairs(_G.SelectedPets) do local v80=0 + 0 ;local v81;while true do if (v80==(1055 -(87 + 968))) then v81=_G.PetLookupTable[v79];if v81 then pcall(function() v5:FireServer("Feed",v81,_G.SelectedTreat);end);end break;end end end task.wait(4.5 -3 );break;end end break;end end end end);break;end end end});local v13=v1:CreateTab("CĂ y Cuá»‘c",4483364245 -(995 + 792) );v13:CreateButton({Name="đŸ¯ BÆ¯á»C 1: LÆ¯U TĂ‚M VÆ¯á»œN",Callback=function() local v24=v2.Character and v2.Character:FindFirstChild("HumanoidRootPart") ;if v24 then local v37=763 -(82 + 681) ;while true do if (v37==(0 -0)) then _G.GardenAnchorCFrame=v24.CFrame;v0:Notify({Title="Ys9282",Content="ÄĂ£ lÆ°u TĂ¢m VÆ°á»n!",Duration=1712 -(71 + 1638) });break;end end end end});v13:CreateToggle({Name="đŸ€ BÆ¯á»C 2: Báº­t Auto Farm",CurrentValue=false,Callback=function(v25) local v26=0 -0 ;while true do if (v26==(0 + 0)) then _G.AutoFarm=v25;task.spawn(function() while _G.AutoFarm do local v49=v2.Character and v2.Character:FindFirstChild("HumanoidRootPart") ;if (v49 and _G.GardenAnchorCFrame) then local v59=0 -0 ;local v60;while true do if (v59==(0 + 0)) then v60={};for v75,v76 in pairs(workspace:GetDescendants()) do if (v76:IsA("ProximityPrompt") and ((v76.ActionText=="Collect") or (v76.ActionText=="Harvest"))) then if ((_G.GardenAnchorCFrame.Position-v76.Parent.Position).Magnitude<=_G.GardenRadius) then table.insert(v60,v76);end end end v59=1 + 0 ;end if (v59==(2 -1)) then if ( #v60>(0 + 0)) then local v82=1130 -(87 + 1043) ;while true do if ((448 -(10 + 438))==v82) then for v85,v86 in ipairs(v60) do if  not _G.AutoFarm then break;end v49.CFrame=v86.Parent.CFrame * CFrame.new(0 + 0 ,2,0 -0 ) ;fireproximityprompt(v86);task.wait(0.15);end task.wait(1);v82=1 + 0 ;end if (v82==(1183 -(1123 + 57))) then v49.CFrame=_G.GardenAnchorCFrame;break;end if (v82==(2 + 0)) then if v9 then pcall(function() v9:FireServer();end);end task.wait(254.5 -(163 + 91) );v82=3;end if (v82==(1931 -(1869 + 61))) then v49.CFrame=v10;task.wait(0.5);v82=2;end end end break;end end end task.wait(1 + 2 );end end);break;end end end});local v14=v1:CreateTab("Cá»­a HĂ ng",4397579986 --85782472 );v14:CreateSection("đŸ›’ AUTO BUY SEEDS (FIXED)");v14:CreateDropdown({Name="Chá»n Háº¡t Giá»‘ng:",Options={"Carrot [Common]","Tomato [Common]","Strawberry [Uncommon]","Blueberry [Uncommon]","Corn [Rare]","Daffodil [Rare]","Watermelon [Legendary]","Pumpkin [Legendary]","Coconut [Mythical]","Cactus [Mythical]","Dragon Fruit [Mythical]","Beanstalk [Mythical]","Alien Apple [Transcendent]","Zebrazinkle [Transcendent]","Octobloom [Transcendent]"},MultipleOptions=true,Callback=function(v27) local v28=0;while true do if (v28==(1850 -(1409 + 441))) then _G.SelectedSeeds={};for v42,v43 in pairs(v27) do local v44=718 -(15 + 703) ;local v45;while true do if (v44==(0 + 0)) then v45=string.split(v43," [")[439 -(262 + 176) ];table.insert(_G.SelectedSeeds,v45);break;end end end break;end end end});v14:CreateToggle({Name="Báº­t Auto Buy Seeds",CurrentValue=false,Callback=function(v29) local v30=0;while true do if (v30==0) then _G.AutoBuySeed=v29;task.spawn(function() while _G.AutoBuySeed do for v57,v58 in pairs(_G.SelectedSeeds) do pcall(function() v6:FireServer("Shop",v58   .. " Seed" );end);end task.wait(3);end end);break;end end end});v14:CreateSection("đŸ›¡ï¸ AUTO BUY GEAR (Äá»¦ Má»¤C)");v14:CreateDropdown({Name="Chá»n Trang Bá»‹:",Options={"Watering Can","Basic Sprinkler","Advanced Sprinkler","Godly Sprinkler","Master Sprinkler","Grandmaster Sprinkler","Supreme Sprinkler","Harvest Tool","Trowel","Recall Wrench","Cleaning Spray","Pet Lead","Favorite Tool","Trading Ticket"},MultipleOptions=true,Callback=function(v31) _G.SelectedGears=v31;end});v14:CreateToggle({Name="Báº­t Auto Buy Gears",CurrentValue=false,Callback=function(v32) local v33=374 -(123 + 251) ;while true do if (v33==(0 -0)) then _G.AutoBuyGear=v32;task.spawn(function() while _G.AutoBuyGear do local v50=0;while true do if (v50==(698 -(208 + 490))) then for v73,v74 in pairs(_G.SelectedGears) do pcall(function() v7:FireServer(v74);end);end task.wait(1 + 3 );break;end end end end);break;end end end});local v15=game:GetService("VirtualUser");v2.Idled:Connect(function() local v34=0 + 0 ;while true do if (v34==(836 -(660 + 176))) then v15:CaptureController();v15:ClickButton2(Vector2.new());break;end end end);v0:Notify({Title="Ys9282 V18.4",Content="ChĂºc may máº¯n láº§n sau!",Duration=5});
--- â ï¸ WARNING: integrity protected!
---[[
- .____                  ________ ___.    _____                           __                
- |    |    __ _______   \_____  \\_ |___/ ____\_ __  ______ ____ _____ _/  |_  ___________ 
- |    |   |  |  \__  \   /   |   \| __ \   __\  |  \/  ___// ___\\__  \\   __\/  _ \_  __ \
- |    |___|  |  // __ \_/    |    \ \_\ \  | |  |  /\___ \\  \___ / __ \|  | (  <_> )  | \/
- |_______ \____/(____  /\_______  /___  /__| |____//____  >\___  >____  /__|  \____/|__|   
-         \/          \/         \/    \/                \/     \/     \/                   
-          \_Welcome to LuaObfuscator.com   (Alpha 0.10.9) ~  Much Love, Ferib 
+local FarmTab = Window:CreateTab("Cày Cuốc", 4483362458)
 
-]]--
+FarmTab:CreateSection("⚡ CHẾ ĐỘ CÀY SIÊU TỐC")
+
+FarmTab:CreateToggle({
+   Name = "Auto Farm (Fast) - Lượm & Bán",
+   CurrentValue = false,
+   Callback = function(v) 
+      _G.AutoFarmFast = v 
+      task.spawn(function()
+          while _G.AutoFarmFast do
+              -- Logic farm của V15 (Quét liên tục tại chỗ)
+              for _, obj in pairs(game.Workspace:GetDescendants()) do
+                  if not _G.AutoFarmFast then break end
+                  if obj:IsA("ProximityPrompt") and obj.ActionText == "Collect" then
+                      fireproximityprompt(obj)
+                  end
+              end
+              task.wait(0.5)
+          end
+      end)
+   end,
+})
+
+FarmTab:CreateSection("🚀 CHẾ ĐỘ DỊCH CHUYỂN")
+
+FarmTab:CreateToggle({
+   Name = "Auto Farm (Teleport) - Bán 15s/lần",
+   CurrentValue = false,
+   Callback = function(Value)
+      _G.AutoFarmTP = Value
+      task.spawn(function()
+          local sellPos = CFrame.new(36.588191986083984, 2.999999761581421, 0.426768958568573)
+          while _G.AutoFarmTP do
+              task.wait(15)
+              if _G.AutoFarmTP then
+                  local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+                  if root then
+                      local oldPos = root.CFrame
+                      root.CFrame = sellPos
+                      task.wait(0.1)
+                      pcall(function() sellRemote:FireServer() end)
+                      task.wait(0.6)
+                      root.CFrame = oldPos
+                  end
+              end
+          end
+      end)
+   end,
+})
