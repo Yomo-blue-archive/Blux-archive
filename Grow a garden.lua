@@ -1,46 +1,71 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-   Name = "Grow a Garden | Ys9282 V16.5 FINAL",
-   LoadingTitle = "Đang cấu hình Gear & Transcendent Seeds...",
+   Name = "Grow a Garden |V18.4",
+   LoadingTitle = "by Coconut(Blue Archive)",
    ConfigurationSaving = { Enabled = false }
 })
 
 -- ==========================================
--- BIẾN TOÀN CỤC
+-- BIẾN TOÀN CỤC & REMOTES
 -- ==========================================
 _G.AutoFarm = false
+_G.GardenAnchorCFrame = nil 
+_G.GardenRadius = 120       
 _G.AutoFeed = false
 _G.AutoBuySeed = false
 _G.AutoBuyGear = false
+_G.AutoBuyEgg = false
 _G.ESPEnabled = false
+_G.ESPCache = {}
+_G.PetLookupTable = {}
 _G.SelectedPets = {}
 _G.SelectedSeeds = {}
 _G.SelectedGears = {}
+_G.SelectedEggs = {}
 _G.SelectedTreat = "Medium Treat"
-_G.PetLookupTable = {}
-_G.ESPCache = {}
 
 local player = game.Players.LocalPlayer
-local petRemote = game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("ActivePetService")
-local seedRemote = game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuySeedStock")
-local gearRemote = game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("BuyGearStock")
-local sellRemote = game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("Sell_Inventory")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local GameEvents = ReplicatedStorage:WaitForChild("GameEvents")
+
+local petRemote = GameEvents:FindFirstChild("ActivePetService")
+local seedRemote = GameEvents:FindFirstChild("BuySeedStock")
+local gearRemote = GameEvents:FindFirstChild("BuyGearStock")
+local eggRemote = GameEvents:FindFirstChild("BuyEgg") or GameEvents:FindFirstChild("OpenEgg")
+local sellRemote = GameEvents:FindFirstChild("Sell_Inventory")
+local SELL_POSITION = CFrame.new(36.588, 3, 0.426)
 
 -- ==========================================
--- TAB 1: THÚ CƯNG
+-- TAB 1: THÚ CƯNG & TRỨNG
 -- ==========================================
-local PetTab = Window:CreateTab("Thú Cưng", 4483362458)
+local PetTab = Window:CreateTab("Thú Cưng & Trứng", 4483362458)
+
+PetTab:CreateSection("🥚 AUTO BUY EGG")
+PetTab:CreateDropdown({
+   Name = "Chọn loại Trứng:",
+   Options = {"Basic Egg", "Rare Egg", "Epic Egg", "Legendary Egg", "Mythical Egg", "Transcendent Egg"},
+   MultipleOptions = true,
+   Callback = function(Options) _G.SelectedEggs = Options end,
+})
 
 PetTab:CreateToggle({
-   Name = "Bật/Tắt ESP Pet",
+   Name = "Bật Auto Buy Eggs",
    CurrentValue = false,
    Callback = function(Value)
-      _G.ESPEnabled = Value
-      for _, bbg in pairs(_G.ESPCache) do if bbg then bbg.Enabled = _G.ESPEnabled end end
+      _G.AutoBuyEgg = Value
+      task.spawn(function()
+          while _G.AutoBuyEgg do
+              for _, egg in pairs(_G.SelectedEggs) do
+                  if eggRemote then pcall(function() eggRemote:FireServer(egg) end) end
+              end
+              task.wait(2.5)
+          end
+      end)
    end,
 })
 
+PetTab:CreateSection("🐾 AUTO FEED PET")
 PetTab:CreateDropdown({
    Name = "Chọn loại thức ăn:",
    Options = {"Medium Treat", "Large Treat", "Levelup Lollipop"},
@@ -88,7 +113,7 @@ PetTab:CreateButton({
 })
 
 PetTab:CreateToggle({
-   Name = "Auto Feed Pet",
+   Name = "Bật Auto Feed",
    CurrentValue = false,
    Callback = function(Value)
       _G.AutoFeed = Value
@@ -98,123 +123,134 @@ PetTab:CreateToggle({
                   local id = _G.PetLookupTable[pName]
                   if id then pcall(function() petRemote:FireServer("Feed", id, _G.SelectedTreat) end) end
               end
-              task.wait(1)
+              task.wait(1.5)
           end
       end)
    end,
 })
 
 -- ==========================================
--- TAB 2: CÀY CUỐC (15S BÁN 1 LẦN)
+-- TAB 2: CÀY CUỐC
 -- ==========================================
 local FarmTab = Window:CreateTab("Cày Cuốc", 4483362458)
 
+FarmTab:CreateButton({
+   Name = "🎯 BƯỚC 1: LƯU TÂM VƯỜN",
+   Callback = function()
+       local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
+       if root then
+           _G.GardenAnchorCFrame = root.CFrame
+           Rayfield:Notify({Title = "Ys9282", Content = "Đã lưu Tâm Vườn!", Duration = 3})
+       end
+   end,
+})
+
 FarmTab:CreateToggle({
-   Name = "Bật Auto Farm & Auto Sell 15s",
+   Name = "🚀 BƯỚC 2: Bật Auto Farm",
    CurrentValue = false,
    Callback = function(Value)
       _G.AutoFarm = Value
-      -- Vòng lặp bán hàng (Chính xác 15s/lần)
-      task.spawn(function()
-          local sellPos = CFrame.new(36.588191986083984, 2.999999761581421, 0.426768958568573)
-          while _G.AutoFarm do
-              task.wait(15)
-              if _G.AutoFarm then
-                  local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-                  if root then
-                      local oldPos = root.CFrame
-                      root.CFrame = sellPos
-                      task.wait(0.1)
-                      pcall(function() sellRemote:FireServer() end)
-                      task.wait(0.6)
-                      root.CFrame = oldPos
-                  end
-              end
-          end
-      end)
-      -- Vòng lặp gom cây
       task.spawn(function()
           while _G.AutoFarm do
               local root = player.Character and player.Character:FindFirstChild("HumanoidRootPart")
-              if root then
-                  for _, obj in pairs(game.Workspace:GetDescendants()) do
-                      if not _G.AutoFarm then break end
+              if root and _G.GardenAnchorCFrame then
+                  local validCrops = {}
+                  for _, obj in pairs(workspace:GetDescendants()) do
                       if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ActionText == "Harvest") then
-                          if (root.Position - obj.Parent.Position).Magnitude < 50 then
-                              root.CFrame = obj.Parent.CFrame * CFrame.new(0, 2, 0)
-                              fireproximityprompt(obj)
-                              task.wait(0.15)
+                          if (_G.GardenAnchorCFrame.Position - obj.Parent.Position).Magnitude <= _G.GardenRadius then
+                              table.insert(validCrops, obj)
                           end
                       end
                   end
+
+                  if #validCrops > 0 then
+                      for _, obj in ipairs(validCrops) do
+                          if not _G.AutoFarm then break end
+                          root.CFrame = obj.Parent.CFrame * CFrame.new(0, 2, 0)
+                          fireproximityprompt(obj)
+                          task.wait(0.15) 
+                      end
+                      task.wait(1)
+                      root.CFrame = SELL_POSITION
+                      task.wait(0.5)
+                      if sellRemote then pcall(function() sellRemote:FireServer() end) end
+                      task.wait(0.5)
+                      root.CFrame = _G.GardenAnchorCFrame
+                  end
               end
-              task.wait(0.3)
+              task.wait(3)
           end
       end)
    end,
 })
 
 -- ==========================================
--- TAB 3: CỬA HÀNG (ALIEN APPLE ĐÃ SỬA)
+-- TAB 3: CỬA HÀNG (FIXED AUTO BUY)
 -- ==========================================
 local ShopTab = Window:CreateTab("Cửa Hàng", 4483362458)
 
-ShopTab:CreateSection("🛒 AUTO BUY HẠT GIỐNG")
+ShopTab:CreateSection("🛒 AUTO BUY SEEDS (FIXED)")
 ShopTab:CreateDropdown({
    Name = "Chọn Hạt Giống:",
    Options = {
        "Carrot [Common]", "Tomato [Common]", "Strawberry [Uncommon]", "Blueberry [Uncommon]", 
        "Corn [Rare]", "Daffodil [Rare]", "Watermelon [Legendary]", "Pumpkin [Legendary]", 
-       "Bamboo [Legendary]", "Coconut [Mythical]", "Cactus [Mythical]", "Dragon Fruit [Mythical]", 
-       "Mango [Mythical]", "Grape [Divine]", "Mushroom [Divine]", "Pepper [Divine]", 
-       "Cacao [Divine]", "Sunflower [Divine]", "Beanstalk [Prismatic]", "Ember Lily [Prismatic]", 
-       "Sugar Apple [Prismatic]", "Burning Bud [Prismatic]", "Giant Pinecone [Prismatic]", 
-       "Elder Strawberry [Prismatic]", "Romanesco [Prismatic]", "Crimson Thorn [Transcendent]", 
-       "Zebrazinkle [Transcendent]", "Octobloom [Transcendent]", "Alien Apple [Transcendent]"
+       "Coconut [Mythical]", "Cactus [Mythical]", "Dragon Fruit [Mythical]", "Beanstalk [Mythical]",
+       "Alien Apple [Transcendent]", "Zebrazinkle [Transcendent]", "Octobloom [Transcendent]"
    },
    MultipleOptions = true,
    Callback = function(Options) 
        _G.SelectedSeeds = {}
-       for _, v in pairs(Options) do table.insert(_G.SelectedSeeds, string.split(v, " [")[1]) end
+       for _, v in pairs(Options) do
+           -- Tách lấy tên chính (ví dụ: "Alien Apple")
+           local rawName = string.split(v, " [")[1]
+           table.insert(_G.SelectedSeeds, rawName)
+       end
    end,
 })
 
 ShopTab:CreateToggle({
-   Name = "Auto Buy Seeds",
+   Name = "Bật Auto Buy Seeds",
    CurrentValue = false,
    Callback = function(Value)
       _G.AutoBuySeed = Value
       task.spawn(function()
           while _G.AutoBuySeed do
-              for _, s in pairs(_G.SelectedSeeds) do pcall(function() seedRemote:FireServer("Shop", s .. " Seed") end) end
-              task.wait(2)
+              for _, seed in pairs(_G.SelectedSeeds) do 
+                  -- Gửi lệnh chuẩn theo format: ("Shop", "Alien Apple Seed")
+                  pcall(function() seedRemote:FireServer("Shop", seed .. " Seed") end)
+              end
+              task.wait(3)
           end
       end)
    end,
 })
 
-ShopTab:CreateSection("🛡️ AUTO BUY TRANG BỊ")
+ShopTab:CreateSection("🛡️ AUTO BUY GEAR (ĐỦ MỤC)")
 ShopTab:CreateDropdown({
-   Name = "Chọn Gear:",
+   Name = "Chọn Trang Bị:",
    Options = {
        "Watering Can", "Basic Sprinkler", "Advanced Sprinkler", "Godly Sprinkler", 
-       "Master Sprinkler", "Grandmaster Sprinkler", "Harvest Tool", "Trowel", 
-       "Recall Wrench", "Cleaning Spray", "Pet Lead", "Favorite Tool", 
-       "Medium Toy", "Medium Treat", "Levelup Lollipop", "Trading Ticket"
+       "Master Sprinkler", "Grandmaster Sprinkler", "Supreme Sprinkler", 
+       "Harvest Tool", "Trowel", "Recall Wrench", "Cleaning Spray", 
+       "Pet Lead", "Favorite Tool", "Trading Ticket"
    },
    MultipleOptions = true,
    Callback = function(Options) _G.SelectedGears = Options end,
 })
 
 ShopTab:CreateToggle({
-   Name = "Auto Buy Gears",
+   Name = "Bật Auto Buy Gears",
    CurrentValue = false,
    Callback = function(Value)
       _G.AutoBuyGear = Value
       task.spawn(function()
           while _G.AutoBuyGear do
-              for _, g in pairs(_G.SelectedGears) do pcall(function() gearRemote:FireServer(g) end) end
-              task.wait(3.5)
+              for _, gear in pairs(_G.SelectedGears) do 
+                  -- Gear chỉ cần tên vật phẩm
+                  pcall(function() gearRemote:FireServer(gear) end) 
+              end
+              task.wait(4)
           end
       end)
    end,
@@ -224,5 +260,5 @@ ShopTab:CreateToggle({
 local VU = game:GetService("VirtualUser")
 player.Idled:Connect(function() VU:CaptureController() VU:ClickButton2(Vector2.new()) end)
 
-Rayfield:Notify({Title = "Ys9282 V16.5", Content = "Alien Apple [Trans] & Full Gear đã sẵn sàng!", Duration = 5})
+Rayfield:Notify({Title = "Ys9282 V18.4", Content = "Chúc may mắn lần sau!", Duration = 5})
 
