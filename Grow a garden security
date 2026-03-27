@@ -188,7 +188,7 @@ FarmTab:CreateToggle({
           local char = player.Character or player.CharacterAdded:Wait()
           local root = char:WaitForChild("HumanoidRootPart")
           _G.MyFarmPosition = root.Position
-          Rayfield:Notify({Title = "Farm Start", Content = "Đang chạy chế độ: " .. _G.FarmMode, Duration = 3})
+          Rayfield:Notify({Title = "Farm Start", Content = "Mode in progress farm: " .. _G.FarmMode, Duration = 3})
       end
 
       task.spawn(function()
