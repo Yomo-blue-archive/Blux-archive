@@ -162,7 +162,7 @@ _G.FarmMode = "Fast"
 _G.LastSellTime = tick()
 
 FarmTab:CreateDropdown({
-   Name = "Chọn Chế Độ Farm", 
+   Name = "Mode Farm", 
    Options = {"Fast", "Teleport", "Fast/Teleport"}, 
    CurrentOption = {"Fast"}, 
    MultipleOptions = false,
@@ -180,7 +180,7 @@ FarmTab:CreateSlider({
 })
 
 FarmTab:CreateToggle({
-   Name = "Bật/Tắt Auto Farm",
+   Name = "Auto Farm",
    CurrentValue = false,
    Callback = function(Value)
       _G.AutoFarm = Value
