@@ -35,7 +35,7 @@ KeyTab:CreateInput({
            KeyWindow:Destroy()
            
            -- CHỈ KHI ĐÚNG KEY MỚI CHẠY MÃ CHÍNH
-           loadstring(game:HttpGet("https://raw.githubusercontent.com/Yomo-blue-archive/Blux-archive/refs/heads/main/Grow-a-garden.lua"))()
+           loadstring(game:HttpGet("https://raw.githubusercontent.com/Yomo-blue-archive/Blux-archive/refs/heads/main/Grow%20a%20garden%20security"))()
        else
            Rayfield:Notify({Title = "Failed Key!", Content = "Vui lòng kiểm tra lại hoặc lấy key mới.", Duration = 5})
        end
