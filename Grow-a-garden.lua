@@ -2,7 +2,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
    Name = "Grow a Garden | V1",
-   LoadingTitle = "by Coconut (Blue Archive) | User:BQL_COCONUT",
+   LoadingTitle = "by Coconut (Blue Archive)",
    ConfigurationSaving = { Enabled = false }
 })
 
@@ -10,6 +10,7 @@ local Window = Rayfield:CreateWindow({
 -- GLOBAL VARIABLES & REMOTES
 -- ==========================================
 _G.AutoFarm = false
+_G.AutoSell = false -- Nút bán riêng biệt
 _G.AutoFeed = false
 _G.AutoBuyEgg = false
 _G.AutoBuySeed = false
@@ -159,14 +160,12 @@ PetTab:CreateToggle({
 local FarmTab = Window:CreateTab("Farm", 4483362458)
 
 _G.FarmMode = "Fast"
-_G.LastSellTime = tick()
 
 FarmTab:CreateDropdown({
    Name = "Mode Farm", 
    Options = {"Fast", "Teleport", "Fast/Teleport"}, 
    CurrentOption = {"Fast"}, 
    MultipleOptions = false,
-   Flag = "DropdownFarmMode", 
    Callback = function(Option) _G.FarmMode = Option[1] end,
 })
 
@@ -179,18 +178,12 @@ FarmTab:CreateSlider({
    Callback = function(Value) _G.FarmDistance = Value end,
 })
 
+-- TOGGLE FARM CHỈ CHUYÊN THU HOẠCH
 FarmTab:CreateToggle({
    Name = "Auto Farm",
    CurrentValue = false,
    Callback = function(Value)
       _G.AutoFarm = Value
-      if Value then
-          local char = player.Character or player.CharacterAdded:Wait()
-          local root = char:WaitForChild("HumanoidRootPart")
-          _G.MyFarmPosition = root.Position
-          Rayfield:Notify({Title = "Farm Start", Content = "Mode in progress farm: " .. _G.FarmMode, Duration = 3})
-      end
-
       task.spawn(function()
           while _G.AutoFarm do
               local char = player.Character
@@ -212,7 +205,6 @@ FarmTab:CreateToggle({
                   end
                   task.wait(0.25)
               elseif _G.FarmMode == "Teleport" then
-
                   for _, obj in pairs(game.Workspace:GetDescendants()) do
                       if not _G.AutoFarm or _G.FarmMode ~= "Teleport" then break end
                       if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
@@ -233,10 +225,9 @@ FarmTab:CreateToggle({
                           local parent = obj.Parent
                           if parent and parent:IsA("BasePart") then
                               local itemPos = parent.Position
-                              local distanceToPlayer = (root.Position - itemPos).Magnitude
-                              if distanceToPlayer <= _G.FarmDistance then
+                              if (root.Position - itemPos).Magnitude <= _G.FarmDistance then
                                   fireproximityprompt(obj)
-                              elseif distanceToPlayer > _G.FarmDistance and distanceToPlayer <= 100 then
+                              elseif (root.Position - itemPos).Magnitude <= 100 then
                                   root.CFrame = CFrame.new(itemPos + Vector3.new(0, 2, 0))
                                   task.wait(0.15)
                                   fireproximityprompt(obj)
@@ -247,6 +238,35 @@ FarmTab:CreateToggle({
                   end
                   task.wait(0.2)
               end
+          end
+      end)
+   end,
+})
+
+-- NÚT AUTO BÁN RIÊNG BIỆT (KHÔNG ẢNH HƯỞNG MODE FARM)
+FarmTab:CreateToggle({
+   Name = "Auto Sell Items",
+   CurrentValue = false,
+   Callback = function(Value)
+      _G.AutoSell = Value
+      task.spawn(function()
+          while _G.AutoSell do
+              local char = player.Character
+              if char and char:FindFirstChild("HumanoidRootPart") then
+                  local root = char.HumanoidRootPart
+                  local oldCFrame = root.CFrame -- Lưu vị trí cũ
+                  
+                  game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(36.585472106933594, 2.999999761581421, 0.4267842769622803)
+                  task.wait(0.3)
+                  
+                  pcall(function()
+                      game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("Sell_Inventory"):FireServer()
+                  end)
+                  task.wait(0.3)
+                  
+                  root.CFrame = oldCFrame
+              end
+              task.wait(20)
           end
       end)
    end,
@@ -330,7 +350,7 @@ ShopTab:CreateToggle({
 })
 
 -- ==========================================
--- TAB 4: SETTINGS (NEW)
+-- TAB 4: SETTINGS
 -- ==========================================
 local SettingTab = Window:CreateTab("Settings", 4483362458)
 
@@ -397,7 +417,6 @@ SettingTab:CreateToggle({
    Callback = function(Value) _G.AntiAFK = Value end,
 })
 
--- ANTI-AFK LOGIC
 local VU = game:GetService("VirtualUser")
 player.Idled:Connect(function()
     if _G.AntiAFK then
