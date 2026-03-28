@@ -8,8 +8,7 @@ local KeyWindow = Rayfield:CreateWindow({
 
 local KeyTab = KeyWindow:CreateTab("Verification", 4483362458)
 
--- CẤU HÌNH KEY CỦA BẠN
-local CorrectKey = "COCONUT_FREE_2026" 
+local CorrectKey = "" 
 local KeyURL = "" 
 KeyTab:CreateSection("GET KEY HERE")
 
