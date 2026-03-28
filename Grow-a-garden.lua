@@ -9,9 +9,8 @@ local KeyWindow = Rayfield:CreateWindow({
 local KeyTab = KeyWindow:CreateTab("Verification", 4483362458)
 
 -- CẤU HÌNH KEY CỦA BẠN
-local CorrectKey = "COCONUT_FREE_2026" -- Bạn có thể đổi key mỗi ngày ở đây
-local KeyURL = "" -- Link Discord hoặc nơi lấy key
-
+local CorrectKey = "COCONUT_FREE_2026" 
+local KeyURL = "" 
 KeyTab:CreateSection("GET KEY HERE")
 
 KeyTab:CreateButton({
@@ -33,8 +32,7 @@ KeyTab:CreateInput({
            Rayfield:Notify({Title = "!", Content = "Load...", Duration = 3})
            task.wait(2)
            KeyWindow:Destroy()
-           
-           -- CHỈ KHI ĐÚNG KEY MỚI CHẠY MÃ CHÍNH
+
            loadstring(game:HttpGet("https://raw.githubusercontent.com/Yomo-blue-archive/Blux-archive/refs/heads/main/Grow%20a%20garden%20security"))()
        else
            Rayfield:Notify({Title = "Failed Key!", Content = "Vui lòng kiểm tra lại hoặc lấy key mới.", Duration = 5})
