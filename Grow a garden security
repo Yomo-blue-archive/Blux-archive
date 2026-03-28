@@ -1,220 +1,46 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
-local Window = Rayfield:CreateWindow({
-   Name = "Grow a Garden | V1",
-   LoadingTitle = "by Coconut (Blue Archive) | User: BQL_COCONUT",
+local KeyWindow = Rayfield:CreateWindow({
+   Name = "BQL COCONUT | Key System",
+   LoadingTitle = "Checking License...",
    ConfigurationSaving = { Enabled = false }
 })
 
--- ==========================================
--- GLOBAL VARIABLES & REMOTES
--- ==========================================
-_G.AutoFarm = false
-_G.AutoFeed = false
-_G.AutoBuyEgg = false
-_G.AutoBuySeed = false
-_G.AutoBuyGear = false
-_G.ESPEnabled = false
-_G.AntiAFK = true
-_G.FlyEnabled = false
-_G.FlySpeed = 50
-_G.FarmDistance = 55
-_G.ESPCache = {}
-_G.PetLookupTable = {}
-_G.SelectedPets = {}
-_G.SelectedSeeds = {}
-_G.SelectedGears = {}
-_G.SelectedEggs = {}
-_G.SelectedTreat = "Medium Treat"
+local KeyTab = KeyWindow:CreateTab("Verification", 4483362458)
 
-local player = game.Players.LocalPlayer
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
-local GameEvents = ReplicatedStorage:WaitForChild("GameEvents")
+-- CẤU HÌNH KEY CỦA BẠN
+local CorrectKey = "COCONUT_FREE_2026" -- Bạn có thể đổi key mỗi ngày ở đây
+local KeyURL = "" -- Link Discord hoặc nơi lấy key
 
-local petRemote = GameEvents:WaitForChild("ActivePetService")
-local seedRemote = GameEvents:WaitForChild("BuySeedStock")
-local gearRemote = GameEvents:WaitForChild("BuyGearStock")
+KeyTab:CreateSection("GET KEY HERE")
 
--- ==========================================
--- TAB 1: PETS & EGGS
--- ==========================================
-local PetTab = Window:CreateTab("Pets & Eggs", 4483362458)
-
-PetTab:CreateSection("ESP PET ID")
-PetTab:CreateToggle({
-   Name = "ID PET",
-   CurrentValue = false,
-   Callback = function(Value)
-      _G.ESPEnabled = Value
-      for _, gui in pairs(_G.ESPCache) do
-          if gui then gui.Enabled = Value end
-      end
-   end,
-})
-
-PetTab:CreateSection("AUTO BUY EGG")
-PetTab:CreateDropdown({
-   Name = "Select Egg Type:",
-   Options = {"Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bug Egg", "Jungle Egg"},
-   MultipleOptions = true,
-   Callback = function(Options) _G.SelectedEggs = Options end,
-})
-
-PetTab:CreateToggle({
-   Name = "Enable Auto Buy Eggs",
-   CurrentValue = false,
-   Callback = function(Value)
-      _G.AutoBuyEgg = Value
-      task.spawn(function()
-          while _G.AutoBuyEgg do
-              for _, egg in pairs(_G.SelectedEggs) do
-                  pcall(function() 
-                      local args = { egg }
-                      ReplicatedStorage.GameEvents.BuyPetEgg:FireServer(unpack(args))
-                  end)
-              end
-              task.wait(0.5)
-          end
-      end)
-   end,
-})
-
-PetTab:CreateSection("AUTO FEED PET")
-PetTab:CreateDropdown({
-   Name = "Select Treat Type:",
-   Options = {"Medium Treat", "Large Treat", "Levelup Lollipop"},
-   CurrentOption = "Medium Treat",
-   Callback = function(Option) _G.SelectedTreat = Option end,
-})
-
-local PetDropdown = PetTab:CreateDropdown({
-   Name = "Select Pets to Feed:",
-   Options = {"Scan Pets first"},
-   MultipleOptions = true,
-   Callback = function(Options) _G.SelectedPets = Options end,
-})
-
-PetTab:CreateButton({
-   Name = "SCAN PETS & UPDATE ESP",
+KeyTab:CreateButton({
+   Name = "COPY LINK GET KEY",
    Callback = function()
-       local list = {}
-       _G.PetLookupTable = {}
-       for _, v in pairs(_G.ESPCache) do if v then v:Destroy() end end
-       _G.ESPCache = {}
+       setclipboard(KeyURL)
+       Rayfield:Notify({Title = "Success", Content = "", Duration = 5})
+   end,
+})
 
-       for _, obj in pairs(game.Workspace:GetDescendants()) do
-           if obj:IsA("Model") and string.match(obj.Name, "%w%w%w%w%w%w%w%w%-") then
-               local fullID = obj.Name 
-               local species = obj:GetAttribute("Species") or "Pet"
-               local shortID = string.sub(fullID, -5)
-               local displayName = species .. " [#" .. shortID .. "]"
-               
-               _G.PetLookupTable[displayName] = fullID
-               table.insert(list, displayName)
-               
-               local bbg = Instance.new("BillboardGui")
-               bbg.Parent = obj
-               bbg.Adornee = obj:FindFirstChild("HumanoidRootPart") or obj.PrimaryPart
-               bbg.Size = UDim2.new(0, 80, 0, 30)
-               bbg.StudsOffset = Vector3.new(0, 3, 0)
-               bbg.AlwaysOnTop = true
-               bbg.Enabled = _G.ESPEnabled
-               
-               local txt = Instance.new("TextLabel", bbg)
-               txt.Size = UDim2.new(1, 0, 1, 0)
-               txt.BackgroundTransparency = 1
-               txt.TextColor3 = Color3.fromRGB(0, 255, 255)
-               txt.TextStrokeTransparency = 0
-               txt.Text = "ID: " .. shortID
-               txt.Font = Enum.Font.GothamBold
-               txt.TextSize = 12
-               
-               table.insert(_G.ESPCache, bbg)
-           end
+KeyTab:CreateSection("ENTER KEY")
+
+KeyTab:CreateInput({
+   Name = "Input Key:",
+   PlaceholderText = "Paste key here...",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+       if Text == CorrectKey then
+           Rayfield:Notify({Title = "!", Content = "Load...", Duration = 3})
+           task.wait(2)
+           KeyWindow:Destroy()
+           
+           -- CHỈ KHI ĐÚNG KEY MỚI CHẠY MÃ CHÍNH
+           loadstring(game:HttpGet("https://raw.githubusercontent.com/Yomo-blue-archive/Blux-archive/refs/heads/main/Grow%20a%20garden%20security"))()
+       else
+           Rayfield:Notify({Title = "Failed Key!", Content = "Vui lòng kiểm tra lại hoặc lấy key mới.", Duration = 5})
        end
-       PetDropdown:Refresh(list)
    end,
-})
-
-PetTab:CreateToggle({
-   Name = "Enable Auto Feed",
-   CurrentValue = false,
-   Callback = function(Value)
-      _G.AutoFeed = Value
-      task.spawn(function()
-          while _G.AutoFeed do
-              for _, pName in pairs(_G.SelectedPets) do
-                  local id = _G.PetLookupTable[pName]
-                  if id then pcall(function() petRemote:FireServer("Feed", id, _G.SelectedTreat) end) end
-              end
-              task.wait(1.5)
-          end
-      end)
-   end,
-})
-
--- ==========================================
--- TAB 2: FARM (SMART HYBRID)
--- ==========================================
-local FarmTab = Window:CreateTab("Farm", 4483362458)
-
-_G.FarmMode = "Fast"
-_G.LastSellTime = tick()
-
-FarmTab:CreateDropdown({
-   Name = "Mode Farm", 
-   Options = {"Fast", "Teleport", "Fast/Teleport"}, 
-   CurrentOption = {"Fast"}, 
-   MultipleOptions = false,
-   Flag = "DropdownFarmMode", 
-   Callback = function(Option) _G.FarmMode = Option[1] end,
-})
-
-FarmTab:CreateSlider({
-   Name = "Farm (Studs)",
-   Range = {10, 150},
-   Increment = 5,
-   Suffix = "Studs",
-   CurrentValue = 55,
-   Callback = function(Value) _G.FarmDistance = Value end,
-})
-
-FarmTab:CreateToggle({
-   Name = "Auto Farm",
-   CurrentValue = false,
-   Callback = function(Value)
-      _G.AutoFarm = Value
-      if Value then
-          local char = player.Character or player.CharacterAdded:Wait()
-          local root = char:WaitForChild("HumanoidRootPart")
-          _G.MyFarmPosition = root.Position
-          Rayfield:Notify({Title = "Farm Start", Content = "Mode in progress farm: " .. _G.FarmMode, Duration = 3})
-      end
-
-      task.spawn(function()
-          while _G.AutoFarm do
-              local char = player.Character
-              if not char then task.wait(1) continue end
-              local root = char:FindFirstChild("HumanoidRootPart")
-              if not root then task.wait(1) continue end
-
-              if _G.FarmMode == "Fast" then
-                  for _, obj in pairs(game.Workspace:GetDescendants()) do
-                      if not _G.AutoFarm or _G.FarmMode ~= "Fast" then break end
-                      if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
-                          local parent = obj.Parent
-                          if parent and parent:IsA("BasePart") then
-                              if (parent.Position - root.Position).Magnitude <= _G.FarmDistance then
-                                  fireproximityprompt(obj)
-                              end
-                          end
-                      end
-                  end
-                  task.wait(0.25)
-              elseif _G.FarmMode == "Teleport" then
-
-                  for _, obj in pairs(game.Workspace:GetDescendants()) do
-                      if not _G.AutoFarm or _G.FarmMode ~= "Teleport" then break end
+})                      if not _G.AutoFarm or _G.FarmMode ~= "Teleport" then break end
                       if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
                           local parent = obj.Parent
                           if parent and parent:IsA("BasePart") then
