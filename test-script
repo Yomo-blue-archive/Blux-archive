@@ -186,122 +186,79 @@ PetTab:CreateToggle({
 -- ==========================================
 -- TAB 2: FARM (SMART HYBRID)
 -- ==========================================
-local FarmTab = Window:CreateTab("Farm", 4483362458)
-
-_G.FarmMode = "Fast"
-
-FarmTab:CreateDropdown({
-   Name = "Mode Farm", 
-   Options = {"Fast", "Teleport", "Fast/Teleport"}, 
-   CurrentOption = {"Fast"}, 
-   MultipleOptions = false,
-   Flag = "Dropdown_FarmMode", -- LƯU CÀI ĐẶT
-   Callback = function(Option) _G.FarmMode = Option[1] end,
-})
-
-FarmTab:CreateSlider({
-   Name = "Farm (Studs)",
-   Range = {10, 150},
-   Increment = 5,
-   Suffix = "Studs",
-   CurrentValue = 55,
-   Flag = "Slider_FarmDistance", -- LƯU CÀI ĐẶT
-   Callback = function(Value) _G.FarmDistance = Value end,
-})
-
 FarmTab:CreateToggle({
-   Name = "Auto Farm",
+   Name = "Auto Farm (Stand Still Collect)",
    CurrentValue = false,
-   Flag = "Toggle_AutoFarm", -- LƯU CÀI ĐẶT
+   Flag = "Toggle_AutoFarm",
    Callback = function(Value)
       _G.AutoFarm = Value
-      task.spawn(function()
-          while _G.AutoFarm do
-              local char = player.Character
-              if not char then task.wait(1) continue end
-              local root = char:FindFirstChild("HumanoidRootPart")
-              if not root then task.wait(1) continue end
 
-              if _G.FarmMode == "Fast" then
-                  for _, obj in pairs(game.Workspace:GetDescendants()) do
-                      if not _G.AutoFarm or _G.FarmMode ~= "Fast" then break end
-                      if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
-                          local parent = obj.Parent
-                          if parent and parent:IsA("BasePart") then
-                              if (parent.Position - root.Position).Magnitude <= _G.FarmDistance then
-                                  fireproximityprompt(obj)
-                              end
-                          end
-                      end
-                  end
-                  task.wait(0.25)
-              elseif _G.FarmMode == "Teleport" then
-                  for _, obj in pairs(game.Workspace:GetDescendants()) do
-                      if not _G.AutoFarm or _G.FarmMode ~= "Teleport" then break end
-                      if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
-                          local parent = obj.Parent
-                          if parent and parent:IsA("BasePart") then
-                             root.CFrame = CFrame.new(parent.Position + Vector3.new(0, 2, 0))
-                             task.wait(0.15)
-                             fireproximityprompt(obj)
-                             task.wait(0.1)
-                          end
-                      end
-                  end
-                  task.wait(0.5)
-              elseif _G.FarmMode == "Fast/Teleport" then
-                  for _, obj in pairs(game.Workspace:GetDescendants()) do
-                      if not _G.AutoFarm or _G.FarmMode ~= "Fast/Teleport" then break end
-                      if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
-                          local parent = obj.Parent
-                          if parent and parent:IsA("BasePart") then
-                              local itemPos = parent.Position
-                              if (root.Position - itemPos).Magnitude <= _G.FarmDistance then
-                                  fireproximityprompt(obj)
-                              elseif (root.Position - itemPos).Magnitude <= 100 then
-                                  root.CFrame = CFrame.new(itemPos + Vector3.new(0, 2, 0))
-                                  task.wait(0.15)
-                                  fireproximityprompt(obj)
-                                  task.wait(0.1)
-                              end
-                          end
-                      end
-                  end
-                  task.wait(0.2)
-              end
-          end
-      end)
-   end,
-})
-
-FarmTab:CreateToggle({
-   Name = "Auto Sell Items",
-   CurrentValue = false,
-   Flag = "Toggle_AutoSell", -- LƯU CÀI ĐẶT
-   Callback = function(Value)
-      _G.AutoSell = Value
       task.spawn(function()
-          while _G.AutoSell do
-              local char = player.Character
-              if char and char:FindFirstChild("HumanoidRootPart") then
-                  local root = char.HumanoidRootPart
-                  local oldCFrame = root.CFrame 
+         while _G.AutoFarm do
+            local char = player.Character
+            if not char then task.wait(1) continue end
+
+            local root = char:FindFirstChild("HumanoidRootPart")
+            if not root then task.wait(1) continue end
+
+            for _, obj in pairs(workspace:GetDescendants()) do
+               if not _G.AutoFarm then break end
+
+               if obj:IsA("ProximityPrompt") 
+               and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
                   
-                  game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(36.585472106933594, 2.999999761581421, 0.4267842769622803)
-                  task.wait(0.3)
-                  
+                  local parent = obj.Parent
+                  if not parent or not parent:IsA("BasePart") then continue end
+
+                  -- ============================
+                  -- 1) CHẶN NHẶT TRÁI NGƯỜI KHÁC
+                  -- ============================
+                  local owner = parent:FindFirstChild("Owner")
+                  local ownerId = parent:FindFirstChild("OwnerId")
+                  local creator = parent:FindFirstChild("Creator")
+
+                  local isMine = false
+
+                  if owner and owner:IsA("StringValue") and owner.Value == player.Name then
+                     isMine = true
+                  end
+
+                  if ownerId and ownerId:IsA("IntValue") and ownerId.Value == player.UserId then
+                     isMine = true
+                  end
+
+                  if creator then
+                     if creator:IsA("ObjectValue") and creator.Value == player then
+                        isMine = true
+                     elseif creator:IsA("StringValue") and creator.Value == player.Name then
+                        isMine = true
+                     elseif creator:IsA("IntValue") and creator.Value == player.UserId then
+                        isMine = true
+                     end
+                  end
+
+                  -- Nếu không phải của bạn → bỏ qua
+                  if not isMine then
+                     continue
+                  end
+
+                  -- ============================
+                  -- 2) NHẶT TRÁI KHÔNG DI CHUYỂN
+                  -- ============================
                   pcall(function()
-                      game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("Sell_Inventory"):FireServer()
+                     fireproximityprompt(obj)
                   end)
-                  task.wait(0.3)
-                  
-                  root.CFrame = oldCFrame
-              end
-              task.wait(20)
-          end
+
+                  task.wait(0.05)
+               end
+            end
+
+            task.wait(0.2)
+         end
       end)
    end,
 })
+
 
 -- ==========================================
 -- TAB 3: SHOP
