@@ -137,18 +137,38 @@ PetTab:CreateButton({
    end,
 })
 
+local currentPetIndex = 1
+
 PetTab:CreateToggle({
-   Name = "Enable Auto Feed",
+   Name = "Enable Auto Feed (Cycle Only)",
    CurrentValue = false,
    Callback = function(Value)
       _G.AutoFeed = Value
       task.spawn(function()
           while _G.AutoFeed do
-              for _, pName in pairs(_G.SelectedPets) do
+              local selected = _G.SelectedPets or {}
+              
+              if #selected > 0 then
+                  if currentPetIndex > #selected then
+                      currentPetIndex = 1
+                  end
+                  
+                  local pName = selected[currentPetIndex]
                   local id = _G.PetLookupTable[pName]
-                  if id then pcall(function() petRemote:FireServer("Feed", id, _G.SelectedTreat) end) end
+                  
+                  if id then
+                      pcall(function() 
+                          petRemote:FireServer("Feed", id, _G.SelectedTreat) 
+                      end)
+                      
+                      currentPetIndex = currentPetIndex + 1
+                  end
+                  
+                  task.wait(1.2)
+              else
+
+                  task.wait(1)
               end
-              task.wait(1.5)
           end
       end)
    end,
