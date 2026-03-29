@@ -3,7 +3,7 @@ local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 local Window = Rayfield:CreateWindow({
    Name = "Grow a Garden | V1",
    LoadingTitle = "by Coconut (Blue Archive)",
-   ConfigurationSaving = { Enabled = false }
+   ConfigurationSaving = { Enabled = true }
 })
 
 -- ==========================================
