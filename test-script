@@ -1,0 +1,473 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Grow a Garden | V1",
+   LoadingTitle = "by Coconut (Blue Archive)",
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "Coconut_GrowAGarden", -- Tên thư mục save trong workspace của Executor
+      FileName = "AutoFarmSave" -- Tên file save
+   }
+})
+
+-- ==========================================
+-- GLOBAL VARIABLES & REMOTES
+-- ==========================================
+_G.AutoFarm = false
+_G.AutoSell = false -- Nút bán riêng biệt
+_G.AutoFeed = false
+_G.AutoBuyEgg = false
+_G.AutoBuySeed = false
+_G.AutoBuyGear = false
+_G.ESPEnabled = false
+_G.AntiAFK = true
+_G.FlyEnabled = false
+_G.FlySpeed = 50
+_G.FarmDistance = 55
+_G.ESPCache = {}
+_G.PetLookupTable = {}
+_G.SelectedPets = {}
+_G.SelectedSeeds = {}
+_G.SelectedGears = {}
+_G.SelectedEggs = {}
+_G.SelectedTreat = "Medium Treat"
+
+local player = game.Players.LocalPlayer
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local GameEvents = ReplicatedStorage:WaitForChild("GameEvents")
+
+local petRemote = GameEvents:WaitForChild("ActivePetService")
+local seedRemote = GameEvents:WaitForChild("BuySeedStock")
+local gearRemote = GameEvents:WaitForChild("BuyGearStock")
+
+-- ==========================================
+-- TAB 1: PETS & EGGS
+-- ==========================================
+local PetTab = Window:CreateTab("Pets & Eggs", 4483362458)
+
+PetTab:CreateSection("ESP PET ID")
+PetTab:CreateToggle({
+   Name = "ID PET",
+   CurrentValue = false,
+   Flag = "Toggle_IDPet", -- LƯU CÀI ĐẶT
+   Callback = function(Value)
+      _G.ESPEnabled = Value
+      for _, gui in pairs(_G.ESPCache) do
+          if gui then gui.Enabled = Value end
+      end
+   end,
+})
+
+PetTab:CreateSection("AUTO BUY EGG")
+PetTab:CreateDropdown({
+   Name = "Select Egg Type:",
+   Options = {"Common Egg", "Uncommon Egg", "Rare Egg", "Legendary Egg", "Mythical Egg", "Bug Egg", "Jungle Egg"},
+   MultipleOptions = true,
+   Flag = "Dropdown_EggType", -- LƯU CÀI ĐẶT
+   Callback = function(Options) _G.SelectedEggs = Options end,
+})
+
+PetTab:CreateToggle({
+   Name = "Enable Auto Buy Eggs",
+   CurrentValue = false,
+   Flag = "Toggle_AutoBuyEgg", -- LƯU CÀI ĐẶT
+   Callback = function(Value)
+      _G.AutoBuyEgg = Value
+      task.spawn(function()
+          while _G.AutoBuyEgg do
+              for _, egg in pairs(_G.SelectedEggs) do
+                  pcall(function() 
+                      local args = { egg }
+                      ReplicatedStorage.GameEvents.BuyPetEgg:FireServer(unpack(args))
+                  end)
+              end
+              task.wait(0.5)
+          end
+      end)
+   end,
+})
+
+PetTab:CreateSection("AUTO FEED PET")
+PetTab:CreateDropdown({
+   Name = "Select Treat Type:",
+   Options = {"Medium Treat", "Large Treat", "Levelup Lollipop"},
+   CurrentOption = {"Medium Treat"},
+   Flag = "Dropdown_TreatType", -- LƯU CÀI ĐẶT
+   Callback = function(Option) _G.SelectedTreat = Option[1] end,
+})
+
+local PetDropdown = PetTab:CreateDropdown({
+   Name = "Select Pets to Feed:",
+   Options = {"Scan Pets first"},
+   MultipleOptions = true,
+   -- Không đặt Flag ở đây vì danh sách Pet thay đổi theo server/lần chơi
+   Callback = function(Options) _G.SelectedPets = Options end,
+})
+
+PetTab:CreateButton({
+   Name = "SCAN PETS & UPDATE ESP",
+   Callback = function()
+       local list = {}
+       _G.PetLookupTable = {}
+       for _, v in pairs(_G.ESPCache) do if v then v:Destroy() end end
+       _G.ESPCache = {}
+
+       for _, obj in pairs(game.Workspace:GetDescendants()) do
+           if obj:IsA("Model") and string.match(obj.Name, "%w%w%w%w%w%w%w%w%-") then
+               local fullID = obj.Name 
+               local species = obj:GetAttribute("Species") or "Pet"
+               local shortID = string.sub(fullID, -5)
+               local displayName = species .. " [#" .. shortID .. "]"
+               
+               _G.PetLookupTable[displayName] = fullID
+               table.insert(list, displayName)
+               
+               local bbg = Instance.new("BillboardGui")
+               bbg.Parent = obj
+               bbg.Adornee = obj:FindFirstChild("HumanoidRootPart") or obj.PrimaryPart
+               bbg.Size = UDim2.new(0, 80, 0, 30)
+               bbg.StudsOffset = Vector3.new(0, 3, 0)
+               bbg.AlwaysOnTop = true
+               bbg.Enabled = _G.ESPEnabled
+               
+               local txt = Instance.new("TextLabel", bbg)
+               txt.Size = UDim2.new(1, 0, 1, 0)
+               txt.BackgroundTransparency = 1
+               txt.TextColor3 = Color3.fromRGB(0, 255, 255)
+               txt.TextStrokeTransparency = 0
+               txt.Text = "ID: " .. shortID
+               txt.Font = Enum.Font.GothamBold
+               txt.TextSize = 12
+               
+               table.insert(_G.ESPCache, bbg)
+           end
+       end
+       PetDropdown:Refresh(list)
+   end,
+})
+
+local currentPetIndex = 1
+
+PetTab:CreateToggle({
+   Name = "Enable Auto Feed (Cycle Only)",
+   CurrentValue = false,
+   Flag = "Toggle_AutoFeed", -- LƯU CÀI ĐẶT
+   Callback = function(Value)
+      _G.AutoFeed = Value
+      task.spawn(function()
+          while _G.AutoFeed do
+              local selected = _G.SelectedPets or {}
+              
+              if #selected > 0 then
+                  if currentPetIndex > #selected then
+                      currentPetIndex = 1
+                  end
+                  
+                  local pName = selected[currentPetIndex]
+                  local id = _G.PetLookupTable[pName]
+                  
+                  if id then
+                      pcall(function() 
+                          petRemote:FireServer("Feed", id, _G.SelectedTreat) 
+                      end)
+                      
+                      currentPetIndex = currentPetIndex + 1
+                  end
+                  
+                  task.wait(1.2)
+              else
+                  task.wait(1)
+              end
+          end
+      end)
+   end,
+})
+
+-- ==========================================
+-- TAB 2: FARM (SMART HYBRID)
+-- ==========================================
+local FarmTab = Window:CreateTab("Farm", 4483362458)
+
+_G.FarmMode = "Fast"
+
+FarmTab:CreateDropdown({
+   Name = "Mode Farm", 
+   Options = {"Fast", "Teleport", "Fast/Teleport"}, 
+   CurrentOption = {"Fast"}, 
+   MultipleOptions = false,
+   Flag = "Dropdown_FarmMode", -- LƯU CÀI ĐẶT
+   Callback = function(Option) _G.FarmMode = Option[1] end,
+})
+
+FarmTab:CreateSlider({
+   Name = "Farm (Studs)",
+   Range = {10, 150},
+   Increment = 5,
+   Suffix = "Studs",
+   CurrentValue = 55,
+   Flag = "Slider_FarmDistance", -- LƯU CÀI ĐẶT
+   Callback = function(Value) _G.FarmDistance = Value end,
+})
+
+FarmTab:CreateToggle({
+   Name = "Auto Farm",
+   CurrentValue = false,
+   Flag = "Toggle_AutoFarm", -- LƯU CÀI ĐẶT
+   Callback = function(Value)
+      _G.AutoFarm = Value
+      task.spawn(function()
+          while _G.AutoFarm do
+              local char = player.Character
+              if not char then task.wait(1) continue end
+              local root = char:FindFirstChild("HumanoidRootPart")
+              if not root then task.wait(1) continue end
+
+              if _G.FarmMode == "Fast" then
+                  for _, obj in pairs(game.Workspace:GetDescendants()) do
+                      if not _G.AutoFarm or _G.FarmMode ~= "Fast" then break end
+                      if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
+                          local parent = obj.Parent
+                          if parent and parent:IsA("BasePart") then
+                              if (parent.Position - root.Position).Magnitude <= _G.FarmDistance then
+                                  fireproximityprompt(obj)
+                              end
+                          end
+                      end
+                  end
+                  task.wait(0.25)
+              elseif _G.FarmMode == "Teleport" then
+                  for _, obj in pairs(game.Workspace:GetDescendants()) do
+                      if not _G.AutoFarm or _G.FarmMode ~= "Teleport" then break end
+                      if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
+                          local parent = obj.Parent
+                          if parent and parent:IsA("BasePart") then
+                             root.CFrame = CFrame.new(parent.Position + Vector3.new(0, 2, 0))
+                             task.wait(0.15)
+                             fireproximityprompt(obj)
+                             task.wait(0.1)
+                          end
+                      end
+                  end
+                  task.wait(0.5)
+              elseif _G.FarmMode == "Fast/Teleport" then
+                  for _, obj in pairs(game.Workspace:GetDescendants()) do
+                      if not _G.AutoFarm or _G.FarmMode ~= "Fast/Teleport" then break end
+                      if obj:IsA("ProximityPrompt") and (obj.ActionText == "Collect" or obj.ObjectText == "Collect") then
+                          local parent = obj.Parent
+                          if parent and parent:IsA("BasePart") then
+                              local itemPos = parent.Position
+                              if (root.Position - itemPos).Magnitude <= _G.FarmDistance then
+                                  fireproximityprompt(obj)
+                              elseif (root.Position - itemPos).Magnitude <= 100 then
+                                  root.CFrame = CFrame.new(itemPos + Vector3.new(0, 2, 0))
+                                  task.wait(0.15)
+                                  fireproximityprompt(obj)
+                                  task.wait(0.1)
+                              end
+                          end
+                      end
+                  end
+                  task.wait(0.2)
+              end
+          end
+      end)
+   end,
+})
+
+FarmTab:CreateToggle({
+   Name = "Auto Sell Items",
+   CurrentValue = false,
+   Flag = "Toggle_AutoSell", -- LƯU CÀI ĐẶT
+   Callback = function(Value)
+      _G.AutoSell = Value
+      task.spawn(function()
+          while _G.AutoSell do
+              local char = player.Character
+              if char and char:FindFirstChild("HumanoidRootPart") then
+                  local root = char.HumanoidRootPart
+                  local oldCFrame = root.CFrame 
+                  
+                  game.Players.LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.new(36.585472106933594, 2.999999761581421, 0.4267842769622803)
+                  task.wait(0.3)
+                  
+                  pcall(function()
+                      game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("Sell_Inventory"):FireServer()
+                  end)
+                  task.wait(0.3)
+                  
+                  root.CFrame = oldCFrame
+              end
+              task.wait(20)
+          end
+      end)
+   end,
+})
+
+-- ==========================================
+-- TAB 3: SHOP
+-- ==========================================
+local ShopTab = Window:CreateTab("Shop", 4483362458)
+
+ShopTab:CreateSection("AUTO BUY SEEDS")
+ShopTab:CreateDropdown({
+   Name = "Select Seeds:",
+   Options = {
+       "Carrot [Common]",  "Strawberry [Common]", "Blueberry [Uncommon]",
+      "Buttercup [Uncommon]", "Tomato [Rare]", "Corn [Rare]",
+      "Daffodil [Rare]",  "Watermelon [Legendary]", "Pumpkin [Legendary]", "Apple [Legendary]", "Bamboo [Legendary]",
+      "Coconut [Mythical]", "Cactus [Mythical]", "Dragon Fruit [Mythical]", "Mango [Mythical]",
+      "Grape [Divine]", "Mushroom [Divine]", "Pepper [Divine]", "Cacao [Divine]", "Sunflower [Divine]",
+      "Beanstalk [Prismatic]", "Ember Lily [Prismatic]", "Sugar Apple [Prismatic]", "Burning Bud [Prismatic]", "Elder Strawberry [Prismatic]", "Romanesco [Prismatic]",
+      "Crimson Thorn [Transcendent]", "Zebrazinkle [Transcendent]", "Octobloom [Transcendent]", "Alien Apple [Transcendent]"
+   },
+   MultipleOptions = true,
+   Flag = "Dropdown_SeedType", -- LƯU CÀI ĐẶT
+   Callback = function(Options) 
+       _G.SelectedSeeds = {}
+       for _, v in pairs(Options) do
+           local rawName = string.split(v, " [")[1]
+           table.insert(_G.SelectedSeeds, rawName)
+       end
+   end,
+})
+
+ShopTab:CreateToggle({
+   Name = "Enable Auto Buy Seeds",
+   CurrentValue = false,
+   Flag = "Toggle_AutoBuySeed", -- LƯU CÀI ĐẶT
+   Callback = function(Value)
+      _G.AutoBuySeed = Value
+      task.spawn(function()
+          while _G.AutoBuySeed do
+              if #_G.SelectedSeeds > 0 then
+                  for _, seedName in pairs(_G.SelectedSeeds) do 
+                      pcall(function() 
+                          local args = { "Shop", seedName }
+                          seedRemote:FireServer(unpack(args))
+                      end)
+                  end
+              end
+              task.wait(0.5)
+          end
+      end)
+   end,
+})
+
+ShopTab:CreateSection("AUTO BUY GEAR")
+ShopTab:CreateDropdown({
+   Name = "Select Gear:",
+   Options = {
+       "Watering Can", "Basic Sprinkler", "Advanced Sprinkler", "Godly Sprinkler", 
+       "Master Sprinkler", "Grandmaster Sprinkler", "Supreme Sprinkler", 
+       "Harvest Tool", "Trowel", "Recall Wrench", "Cleaning Spray", 
+       "Pet Lead", "Favorite Tool", "Trading Ticket", "Levelup Lollipop"
+   },
+   MultipleOptions = true,
+   Flag = "Dropdown_GearType", -- LƯU CÀI ĐẶT
+   Callback = function(Options) _G.SelectedGears = Options end,
+})
+
+ShopTab:CreateToggle({
+   Name = "Enable Auto Buy Gears",
+   CurrentValue = false,
+   Flag = "Toggle_AutoBuyGear", -- LƯU CÀI ĐẶT
+   Callback = function(Value)
+      _G.AutoBuyGear = Value
+      task.spawn(function()
+          while _G.AutoBuyGear do
+              for _, gear in pairs(_G.SelectedGears) do 
+                  pcall(function() gearRemote:FireServer(gear) end) 
+              end
+              task.wait(0.5)
+          end
+      end)
+   end,
+})
+
+-- ==========================================
+-- TAB 4: SETTINGS
+-- ==========================================
+local SettingTab = Window:CreateTab("Settings", 4483362458)
+
+SettingTab:CreateSection("CHARACTER")
+SettingTab:CreateSlider({
+   Name = "WalkSpeed",
+   Range = {16, 250},
+   Increment = 1,
+   Suffix = "Speed",
+   CurrentValue = 16,
+   Flag = "Slider_WalkSpeed", -- LƯU CÀI ĐẶT
+   Callback = function(Value) player.Character.Humanoid.WalkSpeed = Value end,
+})
+
+SettingTab:CreateSlider({
+   Name = "JumpPower",
+   Range = {50, 500},
+   Increment = 1,
+   Suffix = "Power",
+   CurrentValue = 50,
+   Flag = "Slider_JumpPower", -- LƯU CÀI ĐẶT
+   Callback = function(Value) 
+       player.Character.Humanoid.UseJumpPower = true
+       player.Character.Humanoid.JumpPower = Value 
+   end,
+})
+
+SettingTab:CreateSection("MOVEMENT")
+SettingTab:CreateToggle({
+   Name = "Fly (Bay)",
+   CurrentValue = false,
+   Flag = "Toggle_Fly", -- LƯU CÀI ĐẶT
+   Callback = function(Value)
+       _G.FlyEnabled = Value
+       if Value then
+           local char = player.Character
+           local root = char:FindFirstChild("HumanoidRootPart")
+           local camera = workspace.CurrentCamera
+           task.spawn(function()
+               local bv = Instance.new("BodyVelocity", root)
+               bv.MaxForce = Vector3.new(math.huge, math.huge, math.huge)
+               bv.Velocity = Vector3.new(0,0,0)
+               while _G.FlyEnabled do
+                   local moveDir = char.Humanoid.MoveDirection
+                   bv.Velocity = (camera.CFrame.LookVector * (moveDir.Magnitude > 0 and _G.FlySpeed or 0)) + Vector3.new(0, 0.1, 0)
+                   task.wait()
+               end
+               bv:Destroy()
+           end)
+       end
+   end,
+})
+
+SettingTab:CreateSlider({
+   Name = "Fly Speed",
+   Range = {10, 300},
+   Increment = 5,
+   Suffix = "Speed",
+   CurrentValue = 50,
+   Flag = "Slider_FlySpeed", -- LƯU CÀI ĐẶT
+   Callback = function(Value) _G.FlySpeed = Value end,
+})
+
+SettingTab:CreateSection("MISC")
+SettingTab:CreateToggle({
+   Name = "Anti-AFK",
+   CurrentValue = true,
+   Flag = "Toggle_AntiAFK", -- LƯU CÀI ĐẶT
+   Callback = function(Value) _G.AntiAFK = Value end,
+})
+
+local VU = game:GetService("VirtualUser")
+player.Idled:Connect(function()
+    if _G.AntiAFK then
+        VU:CaptureController()
+        VU:ClickButton2(Vector2.new())
+    end
+end)
+
+-- ==========================================
+-- LOAD BẢN SAVE SAU KHI TẠO XONG UI
+-- ==========================================
+Rayfield:LoadConfiguration()
+
+Rayfield:Notify({Title = "BQL_COCONUT V1", Content = "Đã load bản lưu thành công! Good luck!", Duration = 5})
