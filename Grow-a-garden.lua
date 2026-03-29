@@ -282,7 +282,7 @@ FarmTab:CreateToggle({
                   pcall(function()
                       game:GetService("ReplicatedStorage"):WaitForChild("GameEvents"):WaitForChild("Sell_Inventory"):FireServer()
                   end)
-                  task.wait(0.3)
+                  task.wait(0.5)
                   
                   root.CFrame = oldCFrame
               end
