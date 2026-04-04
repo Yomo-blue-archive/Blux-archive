@@ -1,0 +1,81 @@
+-- Gọi thư viện Rayfield
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+-- Tạo Cửa sổ Menu
+local Window = Rayfield:CreateWindow({
+   Name = "Build A Farm Factory Script", -- Đã đổi tên cho đúng game của bạn
+   LoadingTitle = "Đang tải Menu...",
+   LoadingSubtitle = "by Ys9282",
+   ConfigurationSaving = {
+      Enabled = false,
+   },
+   Discord = {
+      Enabled = false,
+   },
+   KeySystem = false -- Tắt hệ thống nhập key
+})
+
+-- Tạo Tab
+local Tab = Window:CreateTab("Chức năng chính", 4483362458) -- Icon mặc định
+
+-- Tạo Section
+local Section = Tab:CreateSection("Tự động trồng cây")
+
+-- ================= CÁC BIẾN CỦA AUTO PLANT ================= --
+local isRunning = false
+-- LƯU Ý: Nếu tên Plot đổi theo tên người chơi thì sửa "MWDISCO" thành game.Players.LocalPlayer.Name
+local plotName = "MWDISCO" 
+local remote = game:GetService("ReplicatedStorage"):WaitForChild("Communication"):WaitForChild("ClickPlant")
+
+-- Danh sách tọa độ đã thêm đầy đủ các ô bạn vừa đưa
+local tilesToClick = {
+    "0_0", "-1_0", "-1_1", "-1_2", "0_2", "1_2", "1_1", "1_0",
+    "-2_0", "-3_0", "-4_0", "-4_1", "-4_2", "-3_2", "-2_2", "-2_1"
+}
+
+-- ================= HÀM AUTO PLANT ================= --
+local function autoPlant()
+    while isRunning do
+        for _, tileName in ipairs(tilesToClick) do
+            if not isRunning then break end -- Dừng ngay khi tắt nút
+            
+            pcall(function()
+                -- Tìm Plot (ưu tiên plotName, nếu không thấy thử tìm theo tên người chơi)
+                local plot = workspace:WaitForChild("Plots"):FindFirstChild(plotName) 
+                if plot then
+                    local tile = plot.Tiles:FindFirstChild(tileName)
+                    if tile then
+                        remote:FireServer(tile) 
+                    end
+                end
+            end)
+            
+            task.wait(0) -- Nghỉ một chút để tránh giật lag server
+        end
+        task.wait(0) -- Delay giữa các lần lặp toàn bộ danh sách
+    end
+end
+
+-- ================= NÚT BẬT/TẮT (TOGGLE) ================= --
+local Toggle = Tab:CreateToggle({
+   Name = "Bật Auto Plant",
+   CurrentValue = false,
+   Flag = "AutoPlantToggle",
+   Callback = function(Value)
+        isRunning = Value
+        if isRunning then
+            task.spawn(autoPlant) -- Chạy vòng lặp nếu nút được bật
+        end
+   end,
+})
+
+-- Nút đóng UI nếu muốn thoát script
+local Section2 = Tab:CreateSection("Cài đặt")
+local DestroyButton = Tab:CreateButton({
+   Name = "Đóng Menu",
+   Callback = function()
+        isRunning = false -- Tắt vòng lặp auto
+        Rayfield:Destroy() -- Xóa giao diện
+   end,
+})
+
