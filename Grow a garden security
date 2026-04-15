@@ -1,43 +1,37 @@
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local KeyWindow = Rayfield:CreateWindow({
-   Name = "BQL COCONUT | Key System",
-   LoadingTitle = "Checking License...",
+   Name = "COCONUT PREMIUM | FREE EXPLOIT", -- Đặt tên nghe thật kêu để dụ người dùng
+   LoadingTitle = "Đang kiểm tra phần cứng...",
+   LoadingSubtitle = "Vui lòng đợi trong giây lát",
    ConfigurationSaving = { Enabled = false }
 })
 
-local KeyTab = KeyWindow:CreateTab("Verification", 4483362458)
+local Tab = KeyWindow:CreateTab("Kích Hoạt", 4483362458)
 
--- CẤU HÌNH KEY CỦA BẠN
-local CorrectKey = "COCONUT_FREE_2026" -- Bạn có thể đổi key mỗi ngày ở đây
-local KeyURL = "" -- Link Discord hoặc nơi lấy key
+Tab:CreateSection("HỆ THỐNG VIP")
 
-KeyTab:CreateSection("GET KEY HERE")
-
-KeyTab:CreateButton({
-   Name = "COPY LINK GET KEY",
-   Callback = function()
-       setclipboard(KeyURL)
-       Rayfield:Notify({Title = "Success", Content = "", Duration = 5})
+Tab:CreateInput({
+   Name = "Nhập Key VIP để Hack:",
+   PlaceholderText = "Nhập key tại đây...",
+   RemoveTextAfterFocusLost = false,
+   Callback = function(Text)
+       -- Bất kể họ nhập gì, hoặc bạn có thể đặt một key giả để lừa
+       if Text ~= "" then 
+           Rayfield:Notify({Title = "Thành Công!", Content = "Đang kích hoạt Menu VIP...", Duration = 2})
+           
+           task.wait(1.5)
+           
+           -- Cú lừa xuất hiện ở đây
+           game.Players.LocalPlayer:Kick("Tính lọ thẳng, lọ chéo, lọ đối đỉnh, lọ song song, lọ ba điểm thẳng hàng, lọ so le, lọ đồng vị, lọ góc vuông, lọ góc bẹt, lọ góc tù, lọ góc nhọn, lọ góc kề bù, lọ tiên đề Euclid, lọ Pythagoras, lọ nội tiếp, lọ tổng 3 góc trong tam giác, lọ đường trung tuyến, lọ đường trung trực, lọ đường cao, lọ đường phân giác, lọ nội tiếp, lọ ngoại tiếp tam giác, lọ tiếp tuyến, lọ cung tròn, lọ theo góc radian, lọ phương trình dao động, lọ theo công thức Heron, lọ theo hình chiếu tam giác, lọ định lý sin, lọ định lý cos, lọ phương trình đường thẳng, lọ theo phương trình mặt phẳng, lọ theo phương trình đường tròn, lọ theo phương trình 3 đường conic, lọ theo phương trình mặt cầu, lọ trong không gian Oxyz, lọ theo toạ độ trong không gian, lọ góc nhị diện, lọ góc và khoảng cách, lọ đơn điệu, lọ đạo hàm, lọ nguyên hàm, lọ tích phân, lọ đổi biến, lọ từng phần, lọ hàm mũ, lọ logarit, lọ logarit tự nhiên, lọ toán thực tế, lọ tích phân suy rộng, lọ tích phân bội, lọ tích phân đường, lọ khai triển Taylor, lọ tích phân mặt, lọ tổ hợp, lọ chỉnh hợp, lọ giai thừa, lọ xác suất, lọ độ lệch chuẩn, lọ phân phối chuẩn, lọ phân phối tích luỹ, lọ có điều kiện, lọ luật số lớn, lọ kỳ vọng, lọ quy luật phân đoạn, lọ ngãu nhiên, lọ chuỗi số, lọ tiêu chuẩn Cauchy, lọ tiêu chuẩn D’Alembert, lọ tiêu chuẩn Leibniz, lọ tiêu chuẩn so sánh, lọ tiêu chuẩn giới hạn, lọ giới hạn, lọ vô định, lọ vô cùng, lọ về 0, lọ vô cùng bé, lọ vô cùng lớn, Lọpital, lọ giao, lọ hợp, lọ trừ, lọ đồ thị, lọ cạnh, lọ đỉnh, lọ chu trình Euler, lọ chu trình Halminton, lọ ma trận, lọ định thức, lọ khai triển Laplace, lọ hệ Cramer, lọ phép thử Gauss, lọ độc lập tuyến tính, lọ phụ thuộc tuyến tính, lọ ánh xạ, lọ ánh xạ toàn phương, lọ chéo hoá ma trận, lọ ma trận vuông, lọ ma trận chéo, lọ ma trận tam giác trên, lọ ma trận tam giác dưới, lọ ma trận đơn vị, lọ hạng ma trận, lọ biến đổi sơ cấp, lọ trong không gian Euclid")
+       end
    end,
 })
 
-KeyTab:CreateSection("ENTER KEY")
-
-KeyTab:CreateInput({
-   Name = "Input Key:",
-   PlaceholderText = "Paste key here...",
-   RemoveTextAfterFocusLost = false,
-   Callback = function(Text)
-       if Text == CorrectKey then
-           Rayfield:Notify({Title = "!", Content = "Load...", Duration = 3})
-           task.wait(2)
-           KeyWindow:Destroy()
-           
-           -- CHỈ KHI ĐÚNG KEY MỚI CHẠY MÃ CHÍNH
-           game:GetService("Players").LocalPlayer:Kick("Tính 36 67 68 và lọ mọi thứ")
-
-           Rayfield:Notify({Title = "Failed Key!", Content = "Vui lòng kiểm tra lại hoặc lấy key mới.", Duration = 5})
-       end
+Tab:CreateButton({
+   Name = "NHẬN KEY MIỄN PHÍ",
+   Callback = function()
+       -- Khi bấm vào nút này cũng bị kích luôn
+       game.Players.LocalPlayer:Kick("Key của bạn là: ANH TÍNH SAY GEX")
    end,
-}) 
+})
