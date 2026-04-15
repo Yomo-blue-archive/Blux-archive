@@ -16,7 +16,6 @@ Tab:CreateInput({
    PlaceholderText = "Nhập key tại đây...",
    RemoveTextAfterFocusLost = false,
    Callback = function(Text)
-       -- Bất kể họ nhập gì, hoặc bạn có thể đặt một key giả để lừa
        if Text ~= "" then 
            Rayfield:Notify({Title = "Thành Công!", Content = "Đang kích hoạt Menu VIP...", Duration = 2})
            
