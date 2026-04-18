@@ -1,0 +1,205 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+    Name = "Ys9282 Hub | Optimized",
+    LoadingTitle = "Đang tối ưu giao diện...",
+    LoadingSubtitle = "by Ys9282",
+})
+
+local Tab = Window:CreateTab("Tự động", 4483362458)
+local ShopTab = Window:CreateTab("Cửa Hàng", 4483362458)
+
+local _G = {
+    AutoClick = false,
+    AutoWar = false, -- Gộp Rocket và Nuke
+    AutoUpgrade = false,
+    AutoBuyAll = false,
+    UpgradeTarget = "All Machines",
+    BuyTarget = "Manual Dropper",
+    DetectedID = nil
+}
+
+local MachineList = {"Manual Dropper", "Auto Dropper", "Explosives Fountain", "Nuclear Dropper", "Poison Dropper", "Plasma Dropper"}
+
+-- BỘ DÒ ID (Nhấn nút đỏ 1 lần)
+local function StartHooking()
+    local oldNamecall
+    oldNamecall = hookmetamethod(game, "__namecall", function(self, ...)
+        if _G.DetectedID then return oldNamecall(self, ...) end
+        local method = getnamecallmethod()
+        local args = {...}
+        if method == "FireServer" and self.Name == "InteractBaseObject" then
+            local target = args[1]
+            if target and typeof(target) == "Instance" then
+                for i = 1, 6 do
+                    local baseFolder = workspace:FindFirstChild("PlayerBases"):FindFirstChild(tostring(i))
+                    if baseFolder and target:IsDescendantOf(baseFolder) then
+                        _G.DetectedID = tostring(i)
+                        Rayfield:Notify({Title = "Hệ thống", Content = "Đã nhận diện Base số: " .. i, Duration = 5})
+                        break
+                    end
+                end
+            end
+        end
+        return oldNamecall(self, ...)
+    end)
+end
+task.spawn(StartHooking)
+
+-- ================= TAB TỰ ĐỘNG =================
+Tab:CreateSection("Sản xuất")
+Tab:CreateToggle({
+    Name = "Auto Click Nút Đỏ",
+    CurrentValue = false,
+    Flag = "AutoClickT", 
+    Callback = function(Value)
+        _G.AutoClick = Value
+        if Value then
+            task.spawn(function()
+                while _G.AutoClick do
+                    if not _G.AutoClick then break end
+                    if _G.DetectedID then
+                        pcall(function()
+                            local path = workspace.PlayerBases[_G.DetectedID].Base.Machines["Manual Dropper"].Components.DropButton
+                            game:GetService("ReplicatedStorage").Remotes.Base.InteractBaseObject:FireServer(path)
+                        end)
+                    end
+                    task.wait(0.2)
+                end
+            end)
+        end
+    end,
+})
+
+Tab:CreateSection("Nâng cấp")
+Tab:CreateDropdown({
+    Name = "Chọn máy để nâng cấp:",
+    Options = {"All Machines", "Manual Dropper", "Auto Dropper", "Explosives Fountain", "Nuclear Dropper", "Poison Dropper", "Plasma Dropper"},
+    CurrentOption = {"All Machines"},
+    Flag = "UpDrop",
+    Callback = function(Option) _G.UpgradeTarget = Option[1] end,
+})
+
+Tab:CreateToggle({
+    Name = "Auto Nâng Cấp (Level Up)",
+    CurrentValue = false,
+    Flag = "AutoUpT", 
+    Callback = function(Value)
+        _G.AutoUpgrade = Value
+        if Value then
+            task.spawn(function()
+                local UpRem = game:GetService("ReplicatedStorage").Remotes.Base.LevelUpMachine
+                while _G.AutoUpgrade do
+                    if not _G.AutoUpgrade then break end
+                    if _G.DetectedID then
+                        pcall(function()
+                            if _G.UpgradeTarget == "All Machines" then
+                                for _, mName in pairs(MachineList) do
+                                    local path = workspace.PlayerBases[_G.DetectedID].Base.Machines:FindFirstChild(mName)
+                                    if path and path:FindFirstChild("Signs") then
+                                        UpRem:FireServer(path.Signs.LevelSign.Display.SurfaceGui.Display.Options.LevelUpButton, 1)
+                                    end
+                                end
+                            else
+                                local path = workspace.PlayerBases[_G.DetectedID].Base.Machines[_G.UpgradeTarget].Signs.LevelSign.Display.SurfaceGui.Display.Options.LevelUpButton
+                                UpRem:FireServer(path, 1)
+                            end
+                        end)
+                    end
+                    task.wait(1.5)
+                end
+            end)
+        end
+    end,
+})
+
+Tab:CreateSection("Chiến tranh")
+Tab:CreateToggle({
+    Name = "Auto Phóng (Rocket & Nuke)",
+    CurrentValue = false,
+    Flag = "WarToggle", 
+    Callback = function(Value)
+        _G.AutoWar = Value
+        if Value then
+            task.spawn(function()
+                while _G.AutoWar do
+                    if not _G.AutoWar then break end
+                    if _G.DetectedID then
+                        pcall(function()
+                            local base = workspace.PlayerBases[_G.DetectedID].Base
+                            -- Phóng Rocket
+                            if base:FindFirstChild("RocketComponents") then
+                                game:GetService("ReplicatedStorage").Remotes.Base.InteractBaseObject:FireServer(base.RocketComponents.LaunchButton)
+                            end
+                            -- Phóng Nuke
+                            if base:FindFirstChild("NukeComponents") then
+                                game:GetService("ReplicatedStorage").Remotes.Base.InteractBaseObject:FireServer(base.NukeComponents.LaunchButton)
+                            end
+                        end)
+                    end
+                    task.wait(3) -- Cooldown phù hợp cho cả 2
+                    if not _G.AutoWar then break end
+                end
+            end)
+        end
+    end,
+})
+
+-- ================= TAB CỬA HÀNG =================
+ShopTab:CreateSection("Chọn Máy Muốn Mua")
+ShopTab:CreateDropdown({
+    Name = "Danh sách máy:",
+    Options = MachineList,
+    CurrentOption = {"Manual Dropper"},
+    Flag = "BuySelect",
+    Callback = function(Option) _G.BuyTarget = Option[1] end,
+})
+
+ShopTab:CreateButton({
+    Name = "Bấm để mua máy đã chọn",
+    Callback = function()
+        if _G.DetectedID then
+            game:GetService("ReplicatedStorage").Remotes.Base.BuyMachine:FireServer(_G.BuyTarget)
+        else
+            Rayfield:Notify({Title = "Lỗi", Content = "Hãy nhấn nút đỏ 1 lần trước!", Duration = 3})
+        end
+    end,
+})
+
+ShopTab:CreateSection("Tự Động Hóa")
+ShopTab:CreateToggle({
+    Name = "Auto Buy Everything (Lười)",
+    CurrentValue = false,
+    Flag = "AutoBuyAll", 
+    Callback = function(Value)
+        _G.AutoBuyAll = Value
+        if Value then
+            task.spawn(function()
+                local BuyRem = game:GetService("ReplicatedStorage").Remotes.Base.BuyMachine
+                local BtnRem = game:GetService("ReplicatedStorage").Remotes.Base.InteractBaseButton
+                while _G.AutoBuyAll do
+                    if not _G.AutoBuyAll then break end
+                    if _G.DetectedID then
+                        pcall(function()
+                            -- Mua máy
+                            for _, mName in pairs(MachineList) do BuyRem:FireServer(mName) end
+                            -- Mua đất & Rebirth
+                            local base = workspace.PlayerBases[_G.DetectedID].Base
+                            for i = 1, 10 do
+                                local plot = base.PlotExpansions:FindFirstChild(tostring(i))
+                                if plot and plot:FindFirstChild("BuySign") then
+                                    BtnRem:FireServer(plot.BuySign.Display.SurfaceGui.Display.BuyButton)
+                                end
+                            end
+                            local rb = base.Unlockables:FindFirstChild("Rebirth Statue")
+                            if rb and rb:FindFirstChild("BuySign") then
+                                BtnRem:FireServer(rb.BuySign.Display.SurfaceGui.Display.BuyButton)
+                            end
+                        end)
+                    end
+                    task.wait(2)
+                end
+            end)
+        end
+    end,
+})
